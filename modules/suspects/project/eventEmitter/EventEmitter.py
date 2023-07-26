@@ -2,8 +2,8 @@
 Name : EventEmitter
 Author : Wieland@AMB-ZEPH15
 Version : 0
-Build : 3
-Savetimestamp : 2023-07-24T22:58:57.180559
+Build : 4
+Savetimestamp : 2023-07-24T23:09:16.402065
 Saveorigin : Project.toe
 Saveversion : 2022.28040
 Info Header End'''
@@ -82,7 +82,7 @@ class EventEmitter:
 		corpses = set()
 		if self.strict: self.check_event( event, *args, **kwargs)
 		for sub in self.subscriber:
-			if sub is None: 
+			if not sub.valid: 
 				corpses.add( sub )
 				continue
 			try:
