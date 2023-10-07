@@ -1,11 +1,9 @@
+
 '''Info Header Start
 Name : EventListener
 Author : Wieland@AMB-ZEPH15
-Version : 0
-Build : 2
-Savetimestamp : 2023-07-24T22:58:22.137571
 Saveorigin : Project.toe
-Saveversion : 2022.28040
+Saveversion : 2022.32660
 Info Header End'''
 
 class EventListener:
@@ -17,14 +15,19 @@ class EventListener:
 
 	def undefined(self, *args, **kwargs):
 		return
+	
+	def CallbackDefinition(self):
+		emitter = self.ownerComp.par.Emitter.eval()
+		try:
+			return emitter.Construct_Module_Definition()
+		except AttributeError:
+			return "def noEmitterDefined():\n\treturn"
 		
 	def Subscribe(self):
 		emitter = self.ownerComp.par.Emitter.eval()
 		try:
 			emitter.Subscribe( self.ownerComp )
-			self.ownerComp.op("callbackManager").op("default_callbacks").text = emitter.Construct_Module_Definition()
 		except AttributeError:
-			self.ownerComp.op("callbackManager").op("default_callbacks").text = "def noEmitterDefined():\n\treturn"
 			return
 		
 	

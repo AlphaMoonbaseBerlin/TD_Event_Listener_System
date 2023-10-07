@@ -1,11 +1,9 @@
+
 '''Info Header Start
 Name : EventEmitter
 Author : Wieland@AMB-ZEPH15
-Version : 0
-Build : 4
-Savetimestamp : 2023-07-24T23:09:16.402065
 Saveorigin : Project.toe
-Saveversion : 2022.28040
+Saveversion : 2022.32660
 Info Header End'''
 import json
 from collections import namedtuple
