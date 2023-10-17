@@ -13,7 +13,7 @@ def defaultattr(target, attrName, default):
 
 import td
 from inspect import getmembers, isfunction
-
+from typing import Iterable, Dict
 EVENT_ATTR_NAME = "AMB_EVENT_DICT"
 class eventListener:
 	"""
@@ -41,20 +41,28 @@ class eventListener:
 		return self.ownerComp.par.Namespace.eval()
 
 	def Emit(self, event, namespace= "", data = None, source:OP = None):
-		listeners = defaultattr(td, EVENT_ATTR_NAME, {} ).get(
+		invalid:Iterable[COMP] = []
+		listeners:set = defaultattr(td, EVENT_ATTR_NAME, {} ).get(
 			self.generateNamespace( namespace or self.namespace ), {}).get(
 			event, set()
 			)
 		for listener in listeners:
+
+			if not listener.valid: 
+				invalid.append( listener )
+				continue
 			listener.Dispatch( event, source or self.ownerComp, data)
 
+		for invalidListener in invalid:
+			listeners.remove( invalidListener )
+
 	def Subscribe(self, event:str, namespace:str = ""):
-		eventData 		= defaultattr(td, EVENT_ATTR_NAME, {} )
-		namespaceDict 	= eventData.setdefault( self.generateNamespace( namespace or self.namespace ), {} )
-		eventSet:set 		= namespaceDict.setdefault(event, set() )
+		eventData		= defaultattr(td, EVENT_ATTR_NAME, {} )
+		namespaceDict	= eventData.setdefault( self.generateNamespace( namespace or self.namespace ), {} )
+		eventSet:set	= namespaceDict.setdefault(event, set() )
 		eventSet.add( self.ownerComp )
 
-	def Dispatch(self, event:str, source:COMP, data:any):
+	def Dispatch(self, event:str, source:OP, data:any):
 		self.ownerComp.op("callbackManager").Do_Callback( event, source, data, self.ownerComp )
 		return
 	
