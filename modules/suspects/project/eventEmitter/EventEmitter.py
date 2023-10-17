@@ -66,7 +66,7 @@ class EventEmitter:
 		for optional_name, optional_data in kwargs.items():
 			if not optional_name in definition["optional"]: 
 				raise event_exceptions.ToManyArguments(f"The eventcall passed a not defined optional argument {optional_name} of call for {event}")
-			if not isinstance( optional_data, definition["optionaal"][optional_name].type): 
+			if not isinstance( optional_data, definition["optional"][optional_name].type): 
 					raise event_exceptions.WrongArgumentType( f"Expected {definition['optional'][optional_name].type}, got {type( optional_data)} on {optional_name} of call for {event}")
 	
 	def Attach_Emitter(self, target):
