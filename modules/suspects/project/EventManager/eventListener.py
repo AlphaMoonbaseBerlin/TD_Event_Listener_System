@@ -14,11 +14,10 @@ def defaultattr(target, attrName, default):
 import td
 from inspect import getmembers, isfunction
 from typing import Iterable, Dict
-EVENT_ATTR_NAME = "AMB_EVENT_DICT"
-class eventListener:
-	"""
-	eventListener description
-	"""
+EVENT_ATTR_NAME = "__AMB_EVENT_DICT"
+
+class extEventManager:
+	
 	def __init__(self, ownerComp):
 		# The component to which this extension is attached
 		self.ownerComp = ownerComp
@@ -27,7 +26,7 @@ class eventListener:
 			self.ownerComp.op("callbackManager").ext.extCallbackManager.moduleOperator
 		)
 		
-	def generateNamespace(self, namespace:str):
+	def _generateNamespace(self, namespace:str):
 		return  f"__{namespace}__"
 	
 	def Update(self, moduleDAT):
@@ -37,17 +36,16 @@ class eventListener:
 			self.Subscribe( member[0], self.ownerComp.par.Namespace.eval() )
 
 	@property
-	def namespace(self):
+	def Namespace(self):
 		return self.ownerComp.par.Namespace.eval()
 
-	def Emit(self, event, namespace= "", data = None, source:OP = None):
+	def Emit(self, event:str, namespace:str= "", data:any = None, source:OP = None):
 		invalid:Iterable[COMP] = []
 		listeners:set = defaultattr(td, EVENT_ATTR_NAME, {} ).get(
-			self.generateNamespace( namespace or self.namespace ), {}).get(
+			self._generateNamespace( namespace or self.Namespace ), {}).get(
 			event, set()
 			)
 		for listener in listeners:
-
 			if not listener.valid: 
 				invalid.append( listener )
 				continue
@@ -58,7 +56,7 @@ class eventListener:
 
 	def Subscribe(self, event:str, namespace:str = ""):
 		eventData		= defaultattr(td, EVENT_ATTR_NAME, {} )
-		namespaceDict	= eventData.setdefault( self.generateNamespace( namespace or self.namespace ), {} )
+		namespaceDict	= eventData.setdefault( self._generateNamespace( namespace or self.Namespace ), {} )
 		eventSet:set	= namespaceDict.setdefault(event, set() )
 		eventSet.add( self.ownerComp )
 

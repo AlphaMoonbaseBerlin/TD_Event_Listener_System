@@ -9,6 +9,7 @@ Info Header End'''
 import json
 from collections import namedtuple
 import event_exceptions
+from functools import lru_cache
 
 sys.modules["EventExceptions"] = event_exceptions
 
@@ -20,31 +21,31 @@ class EventEmitter:
 	def __init__(self, ownerComp):
 		self.ownerComp = ownerComp
 		self.subscriber = set()
-		self.definition = {}
-		self.load_definition()
+		
 		self.module_definition = self.ownerComp.op("module_definition")
 		self.Decorators = mod.decorator
 
 	def load_definition(self):
 		definition_dict = json.loads( self.ownerComp.op("definition").text or "{}" )
-		self.definition = {}
+		outputDefinition = {}
 		for event_key, event_data in definition_dict.items():
-			self.definition[event_key] = { "arguments": [], "optional" : {}}
+			outputDefinition[event_key] = { "arguments": [], "optional" : {}}
 
 			for argument in event_data.get("arguments", []):
 				name, type_string = argument.split(":")
 				argument_type =eval(type_string)
-				self.definition[event_key]["arguments"].append(
+				outputDefinition[event_key]["arguments"].append(
 					argument_tuple( name, argument_type )
 				)
 
 			for optional_argument in event_data.get("optional", []):
 				name, definition = optional_argument.split(":")
 				type_string, default_value = definition.split("=")
-				self.definition[event_key]["optional"][name]	= optional_argument_tuple( 
+				outputDefinition[event_key]["optional"][name]	= optional_argument_tuple( 
 					eval(type_string), 
 					default_value )
-				
+		return outputDefinition
+	
 	@property
 	def strict(self):
 		return self.ownerComp.par.Strict.eval()
@@ -99,11 +100,11 @@ class EventEmitter:
 	def Unsubscribe( self, listener):
 		self.subscriber = self.subscriber - {listener}
 
-
+	@lru_cache(maxsize=1)
 	def Construct_Module_Definition(self):
 		self.module_definition.clear()
 		#self.module_definition.write( "import EventExceptions\n\n" )
-		for callback_name, callback in self.definition.items():
+		for callback_name, callback in self.load_definition().items():
 			arguments = []
 			for argument in callback["arguments"]:
 				arguments.append( f"{argument.name}:{argument.type.__name__}")
@@ -113,7 +114,8 @@ class EventEmitter:
 			self.module_definition.write( f"def on{callback_name}( {', '.join(arguments)} ):\n\treturn\n\n")
 
 		return self.module_definition.text
-
+	
 	def Construct_Module_Op(self):
+		
 		self.Construct_Module_Definition()
 		return self.module_definition
