@@ -10,6 +10,7 @@ import json
 from collections import namedtuple
 import event_exceptions
 from functools import lru_cache
+import sys
 
 sys.modules["EventExceptions"] = event_exceptions
 
