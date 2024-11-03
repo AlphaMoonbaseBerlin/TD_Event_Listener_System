@@ -89,9 +89,10 @@ class EventEmitter:
 		corpses = set()
 		
 		if self.strict: self.check_event( event, *args, **kwargs)
-
-		self.sendBridge( event, *args, **kwargs)
-
+		sendBridge =  kwargs.pop("__sendBridge", True)
+		
+		if sendBridge: self.sendBridge( event, *args, **kwargs)
+		
 		for sub in self.subscriber:
 			if not sub.valid: 
 				corpses.add( sub )
@@ -157,7 +158,8 @@ class EventEmitter:
 		if self.ownerComp.op("receivedIDs")[ messageDict["messageid"], 0 ]: return
 		self.ownerComp.op("receivedIDs").appendRow( messageDict["messageid"])
 		self.Emit(
-			messageDict["computerid"],
+			messageDict["eventname"],
 			*messageDict["args"],
+			__sendBridge = False,
 			**messageDict["kwargs"]
 		)
