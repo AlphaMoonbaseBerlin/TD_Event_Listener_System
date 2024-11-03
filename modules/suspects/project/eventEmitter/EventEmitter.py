@@ -4,8 +4,14 @@
 Name : EventEmitter
 Author : Wieland@AMB-ZEPH15
 Saveorigin : Project.toe
-Saveversion : 2022.32660
+Saveversion : 2022.35320
 Info Header End'''
+# Imports to generate ID
+import hashlib
+import uuid
+import os
+
+
 import json
 from collections import namedtuple
 import event_exceptions
@@ -81,7 +87,11 @@ class EventEmitter:
 		
 	def Emit(self, event, *args, **kwargs):
 		corpses = set()
+		
 		if self.strict: self.check_event( event, *args, **kwargs)
+
+		self.sendBridge( event, *args, **kwargs)
+
 		for sub in self.subscriber:
 			if not sub.valid: 
 				corpses.add( sub )
@@ -120,3 +130,34 @@ class EventEmitter:
 		
 		self.Construct_Module_Definition()
 		return self.module_definition
+
+	@lru_cache(	maxsize=1)
+	def _bridgeId(self):
+		return hashlib.md5(
+			f"{self.ownerComp.id}{os.getpid()}{uuid.getnode()}".encode()
+		).hexdigest()
+	
+	def sendBridge(self, eventname, *args, **kwargs):
+		if not self.ownerComp.par.Bridgeactive.eval(): return
+		messageid = str(uuid.uuid4())
+		self.ownerComp.op("receivedIDs").appendRow( messageid)
+		for _ in range( self.ownerComp.par.Resends.eval()):
+			self.ownerComp.op("udpout1").send(json.dumps(
+				{
+					"bridgeid" : self._bridgeId(),
+					"messageid" : messageid,
+					"eventname" : eventname,
+					"args" : args,
+					"kwargs" : kwargs
+				}
+			))
+	def receiveBridge(self, messagedump:str):
+		messageDict = json.loads(messagedump)
+		if messageDict["bridgeid"] == self._bridgeId(): return
+		if self.ownerComp.op("receivedIDs")[ messageDict["messageid"], 0 ]: return
+		self.ownerComp.op("receivedIDs").appendRow( messageDict["messageid"])
+		self.Emit(
+			messageDict["computerid"],
+			*messageDict["args"],
+			**messageDict["kwargs"]
+		)
