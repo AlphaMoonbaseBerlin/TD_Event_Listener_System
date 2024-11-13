@@ -32,8 +32,13 @@ class EventEmitter:
 		self.module_definition = self.ownerComp.op("module_definition")
 		self.Decorators = mod.decorator
 
-	def load_definition(self):
-		definition_dict = json.loads( self.ownerComp.op("definition").text or "{}" )
+	@property
+	def definition(self):
+		return self._load_definition( self.ownerComp.op("definition").text or "{}" )
+
+	@lru_cache(maxsize=1)
+	def _load_definition(self, definitionJson):
+		definition_dict = json.loads( definitionJson )
 		outputDefinition = {}
 		for event_key, event_data in definition_dict.items():
 			outputDefinition[event_key] = { "arguments": [], "optional" : {}}
