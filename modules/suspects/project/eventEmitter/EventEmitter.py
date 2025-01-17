@@ -3,8 +3,8 @@
 '''Info Header Start
 Name : EventEmitter
 Author : Wieland@AMB-ZEPH15
-Saveorigin : Project.toe
-Saveversion : 2022.35320
+Saveorigin : EventListenerSystem.toe
+Saveversion : 2023.12000
 Info Header End'''
 # Imports to generate ID
 import hashlib
@@ -18,7 +18,7 @@ import event_exceptions
 from functools import lru_cache
 import sys
 
-sys.modules["EventExceptions"] = event_exceptions
+
 
 argument_tuple = namedtuple("Argument", "name type")
 optional_argument_tuple = namedtuple("Optional_Argument", "type default_value")
@@ -28,7 +28,7 @@ class EventEmitter:
 	def __init__(self, ownerComp):
 		self.ownerComp = ownerComp
 		self.subscriber = set()
-		
+		sys.modules["EventExceptions"] = event_exceptions
 		self.module_definition = self.ownerComp.op("module_definition")
 		self.Decorators = mod.decorator
 
@@ -121,7 +121,7 @@ class EventEmitter:
 	def Construct_Module_Definition(self):
 		self.module_definition.clear()
 		#self.module_definition.write( "import EventExceptions\n\n" )
-		for callback_name, callback in self.load_definition().items():
+		for callback_name, callback in self.definition.items():
 			arguments = []
 			for argument in callback["arguments"]:
 				arguments.append( f"{argument.name}:{argument.type.__name__}")
